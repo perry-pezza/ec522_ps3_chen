@@ -91,3 +91,40 @@ can_gas |>
     y = "Volume"
   ) +
   theme_minimal()
+
+can_gas <- can_gas |>
+  mutate(log_volume = log(Volume))
+
+head(can_gas)
+can_gas |> autoplot(log_volume)
+
+retail_nsa <- retail_ts |>
+  filter(series_id == "RSAFSNA") |>
+  mutate(log_sales = log(sales))
+
+retail_nsa |> autoplot(sales)
+retail_nsa |> autoplot(log_sales)
+
+can_gas <- can_gas |>
+  mutate(
+    growth_direct = 100 * difference(Volume) / lag(Volume),
+    growth_logdiff = 100 * difference(log_volume)
+  )
+can_gas |> autoplot(growth_direct)
+can_gas <- can_gas |>
+  mutate(growth_gap = abs(growth_direct - growth_logdiff))
+
+can_gas |> autoplot(growth_gap)
+
+retail_ts <- retail_ts |>
+  group_by_key() |>
+  mutate(growth_mom = 100 * difference(log(sales))) |>
+  ungroup()
+
+retail_ts |>
+  autoplot(growth_mom) +
+  labs(
+    title = "Month-over-Month Growth: SA vs. NSA Retail Sales",
+    x = NULL, y = "Growth rate (%)", color = NULL
+  ) +
+  theme_minimal()
